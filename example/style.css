@@ -1,0 +1,67 @@
+
+/* =============================================================================
+Fluid Grid Layout
+========================================================================== */
+
+.col { float: left; margin-left: 2%; display: block; }
+.col:first-child, .alpha, .span-12 { clear: left; margin-left: 0; }
+
+.span-12 { width: auto; float: none; }
+.span-11 { width: 91.5%; }
+.span-10 { width: 83.00000000000001%; }
+.span-9 { width: 74.5%; }
+.span-8 { width: 66%; }
+.span-7 { width: 57.5%; }
+.span-6 { width: 49%; }
+.span-5 { width: 40.50000000000001%; }
+.span-4 { width: 32%; }
+.span-3 { width: 23.5%; }
+.span-2 { width: 15.000000000000002%; }
+.span-1 { width: 6.500000000000001%; }
+
+/* =============================================================================
+Non-Semantic Helper Classes
+========================================================================== */
+
+.ir { border: 0; font: 0/0 a; text-shadow: none; background-color: transparent; color: transparent; }
+.hidden { display: none !important; visibility: hidden; }
+.visuallyhidden { border: 0; clip: rect(0 0 0 0); height: 1px; margin: -1px; overflow: hidden; padding: 0; position: absolute; width: 1px; }
+.visuallyhidden.focusable:active, .visuallyhidden.focusable:focus { clip: auto; height: auto; margin: 0; overflow: visible; position: static; width: auto; }
+.invisible { visibility: hidden; }
+.preloading { position: absolute; z-index: -1; opacity: 0; filter: alpha(opacity=0); }
+.clearfix:before, .clearfix:after { content: ""; display: table; }
+.clearfix:after { clear: both; }
+.clearfix { *zoom: 1; }
+
+*, *:before, *:after {
+	-moz-box-sizing: border-box;
+	-webkit-box-sizing: border-box;
+	box-sizing: border-box;
+}
+
+
+body {
+	margin: 0;
+	font: 16px/1.5em arial, sans-serif;
+	background: #d3d3d3;
+}
+
+.container {
+	width: 85%;
+	margin: 2em auto;
+	background: #fff;
+	box-shadow: 0 0 10px rgba(0,0,0,0.6) inset;
+	padding: 1em;
+}
+
+	hr  {
+		clear: both;
+	}
+
+.calendar .cal-day.highlighted {
+	background: #464;
+}
+
+.calendar .cal-day.selected {
+	background: #669;
+}

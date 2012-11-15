@@ -1,0 +1,8 @@
+.cal-header { margin:1em 0 0 }
+.cal-header .cal-day-head { width:14.2857142857%;border:1px solid #fff;float:left;color:#fff;background:#8f8f8f;text-align:center; }
+.calendar-holder { margin:0 0 1em }
+.calendar .cal-day { width:14.2857142857%;border:1px solid #fff;height:25px;overflow:hidden;float:left;font:.75em/25px arial,sans-serif;text-align:center;background:#646;color:#fff;cursor:pointer }
+.calendar .cal-day.prev-month,.calendar .cal-day.next-month,.calendar .cal-day.unavailable,.calendar .cal-day.past { color:#ccc;background:transparent;cursor:default }
+.cal-nav { cursor:pointer;display:inline-block;font-size:1.5em }
+.cal-month { display:inline-block;text-transform:capitalize;margin:0 1em }
+.cal-header .cal-day-head, .calendar .cal-day { -moz-box-sizing: border-box; -webkit-box-sizing: border-box; box-sizing: border-box; }
