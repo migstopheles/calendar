@@ -1,4 +1,4 @@
-calendar
+Calendar
 ========
 
-Is a calendar, yes?
+A lightweight calendar that throws out a few events for you to hook into.
