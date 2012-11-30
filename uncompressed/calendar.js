@@ -34,11 +34,18 @@
 					fn.call( list[i], list[i], i );
 				};
 			};
+		},
+		removeAllChildren: function (elem) {
+			var nodes = elem.childNodes;
+			while (nodes && nodes.length > 0) {
+				elem.removeChild(nodes[nodes.length - 1]);
+			};
 		}
 	},
 
 	days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'],
 
+	// months with names
 	months = (function () {
 		var m = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31],
 		n = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'],
@@ -52,6 +59,7 @@
 		return ext_m;
 	})(),
 
+	// today at midnight
 	today = (function () {
 		var d = new Date(),
 		year = d.getUTCFullYear(),
@@ -60,6 +68,7 @@
 		return new Date(year, month, day);
 	})(),
 
+	// html element for calendar day
 	html_day = function (date) {
 		var className = 'cal-day';
 		if (!date.available) className += ' unavailable';
@@ -74,6 +83,7 @@
 		});;
 	},
 
+	// object for calendar day
 	DateInfo = function (caldate, curdate) {
 		this.weekday = new Number(caldate.getDay());
 		this.weekday.name = days[this.weekday];
@@ -88,34 +98,10 @@
 		this.raw_date = caldate;
 	},
 
-	CalendarDay = function (calendarday, currentday, parentcal) {
-		this.date_information = new DateInfo(calendarday, currentday);
-		this.dom_node = null;
-		this.calendar = parentcal;
-		this.selected = false;
-	};
-
-	CalendarDay.prototype = {
-		select: function () {
-			this.calendar.selectDay(this);
-		},
-		unSelect: function () {
-			this.calendar.unSelect(this);
-		},
-		toggleSelect: function () {
-			if ( this.selected ) {
-				this.calendar.unSelectDay(this);
-			} else {
-				this.calendar.selectDay(this);
-			}
-		},
-	}
-
-	var CalendarWidget = function (elm) {
+	// associated elements for a calendar
+	CalendarAccessories = function(){
 
 		var self = this;
-
-		this.dom_node = elm;
 
 		this.next_btn = helper.make('a', {
 			className: 'cal-nav cal-next',
@@ -141,16 +127,89 @@
 				className: 'cal-day-head'
 			}));
 		});
+	},
 
+	// a holder for a 'pane', allowing for multiple months per calendar
+	CalendarPane = function(inst, date_offset) {
+		var accessories = new CalendarAccessories;
+
+		this.date_offset = date_offset;
+		this.date = new Date(today.getFullYear(), today.getMonth() + this.date_offset);
+		this.current_month = months[this.date.getMonth()].monthName.toLowerCase();
+		this.current_monthNum = this.date.getMonth();
+		this.current_year = this.date.getFullYear();
+
+		this.dom_node = helper.make('div',{
+			className: 'calendar-pane'
+		});
+		this.next_btn = accessories.next_btn;
+		this.prev_btn = accessories.prev_btn;
+		this.next_btn = accessories.next_btn;
+		this.month_label = accessories.month_label;
+		this.calendar_node = accessories.calendar_node;
 		this.next_btn.onclick = function(){
-			self.showNextMonth();
+			inst.showNextMonth();
 		};
-
 		this.prev_btn.onclick = function(){
-			self.showPrevMonth();
+			inst.showPrevMonth();
 		};
+	},
 
-		this.removeAllChildren();
+	CalendarDay = function (calendarday, currentday, parentcal) {
+		this.date_information = new DateInfo(calendarday, currentday);
+		this.dom_node = null;
+		this.calendar = parentcal;
+		this.selected = false;
+	};
+
+	CalendarDay.prototype = {
+		select: function () {
+			if ( !this.date_information.available ) {
+				return;
+			}
+			this.calendar.selected_day = this;
+			this.calendar.selected_dates.push(this);
+			this.selected = true;
+			this.dom_node.className += ' selected';
+		},
+		unSelect: function () {
+			var i = this.calendar.selected_dates.length;
+			while ( i-- ) {
+				if ( this.calendar.selected_dates[i] === this ) {
+					this.calendar.selected_dates.splice(i,1);
+				}
+			}
+			this.calendar.selected_day = null;
+			this.selected = false;
+			this.dom_node.className = this.dom_node.className.replace(' selected', '');
+		},
+		toggleSelect: function () {
+			if ( !this.selected ) {
+				this.select();
+			} else {
+				this.unSelect();
+			}
+		}
+	};
+
+	var CalendarWidget = function (elm, config) {
+
+		var self = this;
+
+		this.config = config || {};
+		this.dom_node = elm;
+		this.panes = [];
+
+		helper.removeAllChildren(this.dom_node);
+
+		var i = this.config.panes || 1;
+		var date_addition = 0;
+		while ( i-- ) {
+			var pane = new CalendarPane(this, date_addition);
+			this.dom_node.appendChild(pane.dom_node);
+			this.panes.push(pane);
+			date_addition += this.config.interval;
+		};
 
 		this.date = null;
 		this.selected_dates = [];
@@ -162,6 +221,7 @@
 	};
 
 	CalendarWidget.prototype.set_date = function (date) {
+		var self = this;
 		if (date) {
 			if (date instanceof Date) {
 				this.date = date;
@@ -171,12 +231,23 @@
 		} else {
 			this.date = new Date();
 		};
-		if (!!this.calendar_info[this.current_month + this.current_year]) {
-			this.dom_node.removeChild(this.calendar_info[this.current_month + this.current_year].html);
-		};
+		helper.foreach(this.panes, function(pane){
+
+			if (!!self.calendar_info[pane.current_month + pane.current_year]) {
+				pane.dom_node.removeChild(self.calendar_info[pane.current_month + pane.current_year].html);
+			}
+
+			pane.date = new Date(self.date.getFullYear(), self.date.getMonth() + pane.date_offset);
+			pane.current_month = months[pane.date.getMonth()].monthName.toLowerCase();
+			pane.current_monthNum = pane.date.getMonth();
+			pane.current_year = pane.date.getFullYear();
+	
+			self.set_data(pane.date);
+
+		});
 		this.current_month = months[this.date.getMonth()].monthName.toLowerCase();
+		this.current_monthNum = this.date.getMonth();
 		this.current_year = this.date.getFullYear();
-		this.set_data(this.date);
 		this.calendar_info.current_month = this.calendar_info[this.current_month + this.current_year];
 		this.showMonth();
 		this.onMonthChanged.call(this);
@@ -193,48 +264,46 @@
 	};
 
 	CalendarWidget.prototype.showMonth = function () {
-		this.removeAllChildren();
-		this.month_label.innerHTML = this.current_month.substring(0,3)
-		this.dom_node.appendChild(this.prev_btn);
-		this.dom_node.appendChild(this.month_label);
-		this.dom_node.appendChild(this.next_btn);
-		this.dom_node.appendChild(this.calendar_node);
-		this.dom_node.appendChild(this.calendar_info[this.current_month + this.current_year].html);
+		var self = this;
+		helper.foreach(this.panes, function(pane){
+			pane.month_label.innerHTML = pane.current_month.substring(0,3) + " " + pane.current_year;
+			pane.dom_node.appendChild(pane.prev_btn);
+			pane.dom_node.appendChild(pane.month_label);
+			pane.dom_node.appendChild(pane.next_btn);
+			pane.dom_node.appendChild(pane.calendar_node);
+			pane.dom_node.appendChild(self.calendar_info[pane.current_month + pane.current_year].html);
+			self.dom_node.appendChild(pane.dom_node);
+		});
 	};
 
-	CalendarWidget.prototype.removeAllChildren = function () {
-		var self = this;
-		var nodes = this.dom_node.childNodes;
-		while (nodes.length > 0) {
-			this.dom_node.removeChild(nodes[nodes.length - 1]);
-		};
+	CalendarWidget.prototype.toggleDay = function (day) {
+		day.toggleSelect();
+		if ( day.selected ) {
+			this.onDaySelected.call(this, day);
+		} else {
+			this.onDayUnSelected.call(this, day);
+		}
 	};
 
 	CalendarWidget.prototype.selectDay = function (day) {
-		this.selected_day = day;
-		this.selected_dates.push(day);
-		day.selected = true;
+		day.select();
 		this.onDaySelected.call(this, day);
 	};
 
 	CalendarWidget.prototype.unSelectDay = function (day) {
-		var i = this.selected_dates.length;
-		while ( i-- ) {
-			if ( this.selected_dates[i] === day ) {
-				this.selected_dates.splice(i,1);
-			}
-		}
-		this.selected_day = null;
-		day.selected = false;
+		day.unSelect();
 		this.onDayUnSelected.call(this, day);
 	};
 
 	CalendarWidget.prototype.set_data = function (date) {
 
-		if (!!this.calendar_info[this.current_month + this.current_year]) return;
-
+		var self = this;
 		var current_year = date.getUTCFullYear();
 		var current_month = date.getMonth();
+		var current_monthName = months[current_month].monthName.toLowerCase();
+
+		if (!!this.calendar_info[current_monthName + current_year]) return;
+		
 		var data = [];
 		var html = helper.make("div", {
 			className: 'calendar-holder clearfix'
@@ -258,12 +327,12 @@
 			}
 		})();
 
-		while (init_date.getTime() < end_date.getTime()) {
+		while (init_date < end_date) {
 			var calDay = new CalendarDay(init_date, date, this);
 			calDay.dom_node = html_day(calDay.date_information);
 			calDay.dom_node.onclick = (function (calDay) {
 				return function () {
-					calDay.toggleSelect();
+					self.toggleDay(calDay);
 				}
 			})(calDay);
 			data.push(calDay);
@@ -271,30 +340,52 @@
 			init_date = new Date(init_date.getUTCFullYear(), init_date.getMonth(), init_date.getDate() + 1)
 		};
 
-		this.calendar_info[this.current_month + this.current_year] = {
+		this.calendar_info[current_monthName + current_year] = {
 			data: data,
 			html: html
 		};
+		return data;
 	};
 
-	CalendarWidget.prototype.getDay = function (target) {
-		var days = this.calendar_info[this.current_month + this.current_year].data;
+	CalendarWidget.prototype.getDay = function (year, month, day) {
+		var target;
+		if  ( year instanceof Date ) {
+			target = year;
+		} else {
+			if ( months[month] < day ) {
+				day -= months[month];
+				month++;
+			};
+			if ( month >= 12 ) {
+				month = 0;
+				year++;
+			};
+			target = new Date(year, month, day);
+		};
+
+		var days = this.calendar_info[months[month].monthName.toLowerCase() + year];
+		if ( days ) {
+			days = days.data
+		} else {
+			days = this.set_data(target);
+		};
 		var i = -1;
 		var day;
 		while (++i < days.length) {
-			day = days[i].date_information;
-			if (day.dayofmonth === target && day.monthName.toLowerCase() === this.current_month) {
+			day = days[i].date_information.raw_date;
+			if ( day.toString() === target.toString() ) {
 				return days[i];
-			}
+			};
 		};
 		return null;
 	};
+	
 
 	CalendarWidget.prototype.onDaySelected = function () { };
 	CalendarWidget.prototype.onDayUnSelected = function () { };
 	CalendarWidget.prototype.onMonthChanged = function () { };
 
-	var PageCalendars = function(selector) {
+	var PageCalendars = function(selector, config) {
 		var elements;
 		var self = this;
 		this.widgets = [];
@@ -307,7 +398,7 @@
 			elements = selector;
 		};
 		helper.foreach(elements,function(elm){
-			var cw = new CalendarWidget(elm);
+			var cw = new CalendarWidget(elm, config);
 			self.widgets.push(cw);
 		});
 	};

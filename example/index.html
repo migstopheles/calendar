@@ -11,13 +11,13 @@
 
 		<h1>A lightweight calendar widget</h1>
 
-		<p>Less than 6kb minified, zero dependencies*</p>
+		<p>Less than 7kb minified, zero dependencies*</p>
 
 		<div class="col span-6 alpha">
 
 			<h2>Calendar 1</h2>
 
-			<div class="calendar"></div>
+			<div class="calendar cal-1"></div>
 
 		</div>
 
@@ -25,7 +25,7 @@
 
 			<h2>Calendar 2</h2>
 
-			<div class="calendar"></div>
+			<div class="calendar cal-2"></div>
 
 		</div>
 
@@ -36,59 +36,8 @@
 		<p><small>*except for IE8 and below, where jQuery is needed for CSS selectors</small></p>
 
 	</div>
-
 	<script src="calendar.js"></script>
-
-	<script>
-
-		// this is how you make it happen.
-		var cals = new PageCalendars('.calendar');
-
-		// a small example that highlights days that are prime numbers
-		var getPrimes = function(max) {
-			var list = [],
-			primes = [1],
-			base = 2,
-			idx = base,
-			l = 0;
-			for( var i = 2; i < max; i ++ ) {
-				if ( i % base === 0 && i > base) continue;
-			    list.push(i);
-			}
-			l = list.length;
-			while ( base < max ) {
-				l = list.length;
-				base = list[0]
-			    for( var i = 0; i < l; i ++ ) {
-			        if ( list[i] % base === 0 && list[i] !== base ) {
-			            list.splice(i,1); i = i-1;
-			        }
-			    }
-			    primes[primes.length] = list.splice(0,1)[0];
-			}
-			return primes;
-		}
-		var monthChangeEvent = function() {
-			var curmonth = this.calendar_info.current_month;
-			var highlights = getPrimes(curmonth.data.length);
-			for ( var i = 0, l = highlights.length; i < l; i++ ) {
-				var day = this.getDay(highlights[i]);
-				if ( day ) {
-					day.dom_node.className += ' highlighted';
-				};
-			}
-		};
-		monthChangeEvent.call(cals.widgets[0]);
-		monthChangeEvent.call(cals.widgets[1]);
-		cals.widgets[0].onMonthChanged = cals.widgets[1].onMonthChanged = monthChangeEvent
-		cals.widgets[0].onDaySelected = cals.widgets[1].onDaySelected = function(day) {
-			day.dom_node.className += ' selected';
-		};
-		cals.widgets[0].onDayUnSelected = cals.widgets[1].onDayUnSelected = function(day) {
-			day.dom_node.className = day.dom_node.className.replace(' selected', '')
-		};
-	
-	</script>
+	<script src="page.js"></script>
 
 </body>
 </html>
