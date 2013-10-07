@@ -62,7 +62,7 @@
 	// today at midnight
 	today = (function () {
 		var d = new Date(),
-		year = d.getUTCFullYear(),
+		year = d.getFullYear(),
 		month = d.getMonth(),
 		day = d.getDate();
 		return new Date(year, month, day);
@@ -298,7 +298,7 @@
 	CalendarWidget.prototype.set_data = function (date) {
 
 		var self = this;
-		var current_year = date.getUTCFullYear();
+		var current_year = date.getFullYear();
 		var current_month = date.getMonth();
 		var current_monthName = months[current_month].monthName.toLowerCase();
 
@@ -321,7 +321,7 @@
 			var d;
 			var f = new Date(current_year, current_month, months[current_month]);
 			if (f.getDay() === 6) {
-				return new Date(f.getUTCFullYear(), f.getMonth(), f.getDate() + 1);
+				return new Date(f.getFullYear(), f.getMonth(), f.getDate() + 1);
 			} else {
 				return new Date(current_year, current_month, f.getDate() + (7 - f.getDay()));
 			}
@@ -337,7 +337,7 @@
 			})(calDay);
 			data.push(calDay);
 			html.appendChild(calDay.dom_node);
-			init_date = new Date(init_date.getUTCFullYear(), init_date.getMonth(), init_date.getDate() + 1)
+			init_date = new Date(init_date.getFullYear(), init_date.getMonth(), init_date.getDate() + 1)
 		};
 
 		this.calendar_info[current_monthName + current_year] = {
